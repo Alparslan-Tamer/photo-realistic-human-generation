@@ -1,40 +1,21 @@
-import base64
 from openai import OpenAI
 
 client = OpenAI()
 
-# Function to encode the image
-def encode_image(image_path):
-    with open(image_path, "rb") as image_file:
-        return base64.b64encode(image_file.read()).decode("utf-8")
+prompt = "Please generate a JSON list of 50 descriptions of diverse human portraits. Each description should specify attributes such as age, gender, ethnicity, hair and eye color, facial expression, and visible teeth. Include a brief description of the background for each portrait. Give this info as diffusion prompt. only describe the portraits, do not include any other information."
 
-
-# Path to your image
-image_path = "example_image.png"
-
-# Prompt to ask the model
-prompt = ""
-
-# Getting the base64 string
-base64_image = encode_image(image_path)
-
-response = client.chat.completions.create(
+completion = client.chat.completions.create(
     model="gpt-4o",
     messages=[
+        {"role": "developer", "content": "You are a helpful assistant and answer with JSON format."},
         {
             "role": "user",
-            "content": [
-                {
-                    "type": "text",
-                    "text": "Give me appropriate JSON object for the data in the image?",
-                },
-                {
-                    "type": "image_url",
-                    "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"},
-                },
-            ],
+            "content": prompt,
         }
-    ],
+    ]
 )
 
-print(response.choices[0])
+json_list = completion.choices[0].message.content
+
+with open("portraits.json", "w") as f:
+    f.write(json_list)
